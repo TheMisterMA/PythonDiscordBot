@@ -5,20 +5,24 @@ TOKEN = 'Nzg5MDQ5OTc2MzMxNTY3MTA0.X9saDg.aiFJvOC9li_d28pmxdXwGny9Stk'
 
 client = discord.Client()
 
-@client.event
-async def on_message(message):
-    # we do not want the bot to reply to itself
-    if message.author == client.user:
-        return
+class MyClient(discord.Client):
+    async def on_ready(self):
+        print('-----------------------------------------------------------------')
+        print('--\tLogged in as:\t', self.user.name, '\t\n--\tID number:\t', self.user.id)
+        print('-----------------------------------------------------------------')
 
-    if message.content.startswith('!hello'):
-        msg = 'Hello {0.author.mention}'.format(message)
-        await client.send_message(message.channel, msg)
+    async def on_message(self, message):
+        # we do not want the bot to reply to itself
+        if message.author.id == self.user.id:
+            return
 
-@client.event
-async def on_ready():
-    print('-----------------------------------------------------------------')
-    print('--\tLogged in as:\t', client.user.name, '\t\n--\tID number:\t', client.user.id)
-    print('-----------------------------------------------------------------')
+        if message.author.id == 175941846650847232:
+            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id)
+            await message.reply('The almighty admin', mention_author=False)
 
+        elif message.content.startswith('- hello'):
+            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id)
+            await message.channel.send('Hello!')
+
+client = MyClient()
 client.run(TOKEN)
