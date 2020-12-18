@@ -1,9 +1,4 @@
-# Work with Python 3.6
 import discord
-
-TOKEN = 'Nzg5MDQ5OTc2MzMxNTY3MTA0.X9saDg.aiFJvOC9li_d28pmxdXwGny9Stk'
-
-client = discord.Client()
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -25,5 +20,5 @@ class MyClient(discord.Client):
             print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id)
             await message.channel.send('Hello!')
 
-client = MyClient()
-client.run(TOKEN)
+        if message.content.startswith('.'):
+            await message.reply('Fuck Off Cunt!')
