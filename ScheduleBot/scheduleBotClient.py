@@ -20,6 +20,15 @@ class ScheduleBotClient(discord.Client):
         elif message.content.startswith('- hello'):
             print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
             await message.channel.send('Hello!')
+        
+        #   Frequent army phrases that will be funny.
+        elif message.content.startswith('עד מתי'):
+            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
+            await message.reply('עד מתי שפאקינג צריך נבלה')
+
+        elif message.content.startswith('כמה עוד'):
+            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
+            await message.reply('כמה שעוד צריך יא חלאה...')
 
         #   For the people who troll the bot while i test things...
         if message.content.startswith('.') and message.author.name != MY_NAME:
