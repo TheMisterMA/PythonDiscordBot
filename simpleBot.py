@@ -8,7 +8,8 @@ client = discord.Client()
 class MyClient(discord.Client):
     async def on_ready(self):
         print('-----------------------------------------------------------------')
-        print('--\tLogged in as:\t', self.user.name, '\t\n--\tID number:\t', self.user.id)
+        print('--\tLogged in as:\t',    self.user.name)
+        print('--\tID number:\t',       self.user.id)
         print('-----------------------------------------------------------------')
 
     async def on_message(self, message):
