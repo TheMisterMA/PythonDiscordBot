@@ -2,7 +2,7 @@
 File Name       :   scheduleBotClient.py
 Project         :   ScheduleBot
 Author          :   MrMA
-Creation Date   :   17.12.20
+Creation Date   :   17.12.20    
 
 This file is defines the client which contains the logic and algorithems of the Discord's bot.
 """
@@ -10,12 +10,16 @@ This file is defines the client which contains the logic and algorithems of the 
 import discord
 from discord.ext import tasks, commands
 from constants import MY_NAME, MAIN_GUILD_ID
-
+from dataHandler import importantDataHandler
 
 class ScheduleBotClient(discord.Client):
     """
     This class is the implementation of the, ScheduleBot client in discord.
     """
+    def __init__(self):
+        super().__init__()
+
+        self.importantData = importantDataHandler()
 
     async def on_ready(self):
         """
@@ -64,6 +68,8 @@ class ScheduleBotClient(discord.Client):
             print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
             await message.reply('Fuck Off You Filth', mention_author = True)
 
+        self.importantData.updateLastMessage(message)
+
     #   This defines a loop that will call this function every certain amount of time.
     @tasks.loop(minutes=1)
     async def called_once_a_day(self):
@@ -71,7 +77,6 @@ class ScheduleBotClient(discord.Client):
         This function is intended to be called every certain amount of time, defined in the task.loop above.
         It will execute the same functionallity when it will be called.
         """
-
         #   Choosing the channek intended for testing.
         for channel in self.get_guild(MAIN_GUILD_ID).channels:
             if (channel.name == 'bot-testing'):
@@ -88,8 +93,7 @@ class ScheduleBotClient(discord.Client):
     async def before(self):
         """
         This function makes sure every needed configuration of the discord.py API is set.
-        """
-
+        """ 
         #   Waits for all of the communications of discord to be set. 
         await self.wait_until_ready()
         print("Finished waiting")
