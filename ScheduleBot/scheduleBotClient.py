@@ -34,7 +34,7 @@ class ScheduleBotClient(discord.Client):
         print('-----------------------------------------------------------------')
 
         #   Executing the schdual loop.
-        self.called_once_a_day().start()
+        self.called_once_a_day.start()
 
     async def on_message(self, message):
         """
