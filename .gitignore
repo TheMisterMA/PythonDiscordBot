@@ -131,3 +131,4 @@ dmypy.json
 
 # Project ignores
 discord.py/
+Data.json
