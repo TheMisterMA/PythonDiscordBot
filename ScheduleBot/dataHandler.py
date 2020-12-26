@@ -1,12 +1,14 @@
 import json
 import discord
 
-class importantDataHandler(object):
+class ImportantDataHandler(object):
     """
     docstring
     """
-    def __init__(self):
+    
+    def __init__(self, filePath : str = 'Data.json'):
         self.data = {}
+        self.filePath = filePath
 
     def updateLastMessage(self, message : discord.Message):
         self.data['LastMessage'] = {

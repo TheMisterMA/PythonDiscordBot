@@ -9,6 +9,7 @@ This file has all the needed constant of the Bot.
 
 """     Discord ID's        """
 MAIN_GUILD_ID = 589535414944137226
+GENERAL_CHANEL_ID = 620402498532016188
 
 """     Important Names     """
 MY_NAME = 'WeLiveInASociety'

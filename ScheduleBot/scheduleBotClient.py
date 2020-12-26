@@ -10,16 +10,31 @@ This file is defines the client which contains the logic and algorithems of the 
 import discord
 from discord.ext import tasks, commands
 from constants import MY_NAME, MAIN_GUILD_ID
-from dataHandler import importantDataHandler
+from dataHandler import ImportantDataHandler
+from datetime import datetime, timezone, timedelta
+import random
 
-class ScheduleBotClient(discord.Client):
+class ScheduleBot(discord.ext.commands.Bot):
     """
     This class is the implementation of the, ScheduleBot client in discord.
     """
-    def __init__(self):
-        super().__init__()
+    
+    def __init__(self, **options):
 
-        self.importantData = importantDataHandler()
+        #   Declerations of internal members.
+        self.description = '''
+            This bot should do small actions.
+            Right now it doesn't do much but should in the end make the act of scheduling meetings easier and much more maneged.
+        '''
+
+        #   self.importentData = ImportantDataHandler()
+        self.lastMessage = None
+
+        #   The constructor of the discord.ext.commands.Bot class.
+        super().__init__(command_prefix='-', description=self.description)
+
+        #   Adding the functions of this class as commands for the bots.
+        self.add_command(commands.Command(self.roll))
 
     async def on_ready(self):
         """
@@ -27,69 +42,78 @@ class ScheduleBotClient(discord.Client):
         usually after login is successful.
         The function prints the data about the bot which is connected, and executes the schdualing loop.
         """
+
         #   The info about the bot itself for admins's use.
         print('-----------------------------------------------------------------')
         print('--\tLogged in as:\t',    self.user.name)
         print('--\tID number:\t',       self.user.id)
         print('-----------------------------------------------------------------')
 
-        #   Executing the schdual loop.
-        self.called_once_a_day.start()
+        self.botsInternalLoop.start()
 
     async def on_message(self, message):
+        print('Got message from : ', message.author.name, ', ', message.author.id, ' in the channel : <', message.channel.name, '> in <', message.channel.guild.name , '>\n\tThe message : ', message.content)
+        await super().on_message(message)
+
+        #self.importentData.updateLastMessage(message)
+
+    async def roll(self, ctx : discord.TextChannel, dice: str):
         """
-        This function overloads the function that get called by discord.py when a message 
-        is sent in one of the channels the bot has access to.
-        It will ignore every message the bot himself sends.
-        For the message '- hello' it will send a simple 'Hello!' to the same channel the other message was sent.
-        If the message will start with 'עד מתי' or 'כמה עוד' it will return an IDF small joke.
-        And if someone other then me will send anything that will start with '.' it will curse to avoid trolls.
+        Rolls a dice in NdN format.
         """
-        #   we do not want the bot to reply to itself
-        if message.author.id == self.user.id:
+
+        try:
+            rolls, limit = map(int, dice.split('d'))
+        except Exception:
+            await ctx.send('Format has to be in NdN!')
             return
 
-        #   Simple Commend to check if the functionality is working.
-        elif message.content.startswith('- hello'):
-            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
-            await message.channel.send('Hello!')
-        
-        #   Frequent army phrases that will be funny.
-        elif message.content.startswith('עד מתי'):
-            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
-            await message.reply('עד מתי שפאקינג צריך נבלה')
-
-        elif message.content.startswith('כמה עוד'):
-            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
-            await message.reply('כמה שעוד צריך יא חלאה...')
-
-        #   For the people who troll the bot while i test things...
-        if message.content.startswith('.') and message.author.name != MY_NAME:
-            print("The author :\t", message.author.name, "\tWith the ID :\t", message.author.id, "\tMessage:\t", message.content)
-            await message.reply('Fuck Off You Filth', mention_author = True)
-
-        self.importantData.updateLastMessage(message)
+        result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
+        await ctx.send(result)
 
     #   This defines a loop that will call this function every certain amount of time.
-    @tasks.loop(minutes=1)
-    async def called_once_a_day(self):
+    @tasks.loop(seconds=3)
+    async def botsInternalLoop(self):
         """
         This function is intended to be called every certain amount of time, defined in the task.loop above.
         It will execute the same functionallity when it will be called.
         """
+
         #   Choosing the channek intended for testing.
         for channel in self.get_guild(MAIN_GUILD_ID).channels:
-            if (channel.name == 'bot-testing'):
-                message_channel = channel
+            if channel.type == discord.ChannelType.text and channel.last_message != None:
+                channelsLastMessage = await channel.fetch_message(channel.last_message.id)
 
-        #   Print the channel information
-        print(f"Got channel {message_channel}")
+            if (
+                channel.type == discord.ChannelType.text and 
+                channel.last_message != None and (
+                    self.lastMessage == None or (
+                        self.lastMessage.created_at > channelsLastMessage.created_at and 
+                        self.user.id != channelsLastMessage.author.id
+                    )
+                )
+            ):
+                self.lastMessage = await channel.fetch_message(channel.last_message.id)
 
-        #   Sending to that channel a message to check if this function get called every loop.
-        await message_channel.send("Loop check")
+        print('Last message is None : ', self.lastMessage != None)
+        
+        if(self.lastMessage != None):
+            print('last message created at :', self.lastMessage.created_at.isoformat(timespec = 'microseconds'))
+
+        print('time now:', datetime.now(timezone.utc).isoformat(timespec = 'microseconds'))
+
+        if (self.lastMessage != None and datetime.now() - self.lastMessage.created_at >= timedelta(hours = 2, minutes=1)):
+                print('CHECKED')
+                for channel in self.get_guild(MAIN_GUILD_ID).channels:
+                    if (channel.name == 'bot-testing' and channel.type == discord.ChannelType.text):
+                        await channel.send("everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
+        #elif (self.lastMessage == None):
+        #    for channel in self.get_guild(MAIN_GUILD_ID).channels:
+        #        if (channel.name == 'bot-testing' and channel.type == discord.ChannelType.text):
+        #            await channel.send("everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
 
     #   Defines this will be called before the loop would start.
-    @called_once_a_day.before_loop
+    @botsInternalLoop.before_loop
     async def before(self):
         """
         This function makes sure every needed configuration of the discord.py API is set.
