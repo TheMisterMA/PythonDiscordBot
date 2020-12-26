@@ -9,9 +9,9 @@ This file is defines the client which contains the logic and algorithems of the 
 
 import discord
 from discord.ext import tasks, commands
-from constants import MY_NAME, MAIN_GUILD_ID
+from constants import MY_NAME, MAIN_GUILD_ID, MAX_TIME_DELTA
 from dataHandler import ImportantDataHandler
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import random
 
 class ScheduleBot(discord.ext.commands.Bot):
@@ -81,36 +81,30 @@ class ScheduleBot(discord.ext.commands.Bot):
 
         #   Choosing the channek intended for testing.
         for channel in self.get_guild(MAIN_GUILD_ID).channels:
+
+            channelsLastMessage = None
+
             if channel.type == discord.ChannelType.text and channel.last_message != None:
                 channelsLastMessage = await channel.fetch_message(channel.last_message.id)
 
             if (
-                channel.type == discord.ChannelType.text and 
-                channel.last_message != None and (
-                    self.lastMessage == None or (
-                        self.lastMessage.created_at > channelsLastMessage.created_at and 
-                        self.user.id != channelsLastMessage.author.id
-                    )
+                channelsLastMessage != None and (
+                    self.lastMessage == None or 
+                    self.lastMessage.created_at < channelsLastMessage.created_at
                 )
             ):
-                self.lastMessage = await channel.fetch_message(channel.last_message.id)
-
-        print('Last message is None : ', self.lastMessage != None)
+                self.lastMessage = channelsLastMessage
         
         if(self.lastMessage != None):
             print('last message created at :', self.lastMessage.created_at.isoformat(timespec = 'microseconds'))
 
-        print('time now:', datetime.now(timezone.utc).isoformat(timespec = 'microseconds'))
+        print('time now:', datetime.utcnow().isoformat(timespec = 'microseconds'))
 
-        if (self.lastMessage != None and datetime.now() - self.lastMessage.created_at >= timedelta(hours = 2, minutes=1)):
+        if (self.lastMessage == None or (self.lastMessage != None and datetime.utcnow() - self.lastMessage.created_at >= MAX_TIME_DELTA)):
                 print('CHECKED')
                 for channel in self.get_guild(MAIN_GUILD_ID).channels:
                     if (channel.name == 'bot-testing' and channel.type == discord.ChannelType.text):
                         await channel.send("everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
-        #elif (self.lastMessage == None):
-        #    for channel in self.get_guild(MAIN_GUILD_ID).channels:
-        #        if (channel.name == 'bot-testing' and channel.type == discord.ChannelType.text):
-        #            await channel.send("everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
 
     #   Defines this will be called before the loop would start.
     @botsInternalLoop.before_loop
