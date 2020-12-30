@@ -1,34 +1,27 @@
 """
-File Name       :   scheduleBotClient.py
+File Name       :   schedule_cogs.py
 Project         :   ScheduleBot
 Author          :   MrMA
 Creation Date   :   17.12.20
 
-This file is defines the client which contains the logic and algorithems of the Discord's bot.
+This file is defines the Cogs which group sets of commends or algorithems of the Discord's bot.
 """
 
 from discord import ChannelType, TextChannel
 from discord.ext.tasks import loop
 from discord.ext.commands import Command, Bot, Cog, command
-from constants import MY_NAME, MAIN_GUILD_ID, MAX_TIME_DELTA, BOT_LOOP_DURATION_IN_SECONDS, GENERAL_CHANEL_ID
+from constants import MY_NAME, MAIN_GUILD_ID, MAX_TIME_DELTA, BOT_LOOP_DURATION_IN_SECONDS, MAIN_CHANNEL_ID
 from datetime import datetime, timezone
 import random
 
 
-#class ScheduleBot(Bot):
-#    """
-#    ScheduleBot client in discord,
-#    this bot will post a callout to every member of the Guiild defined by MAIN_GUILD_ID, if no message is seen for the amount of time defined in MAX_TIME_DELTA,
-#    which is checked every amount of time defiend in BOT_LOOP_DURATION_IN_SECONDS.
-#    Also it roll dice with the command '-roll' in the format NdN.
-#    """
-#
-#    def __init__(self, **options):
-#        pass
-
-class SchedulingCogs(Cog):
+class Scheduling(Cog):
     """
-    docstring
+    Command declerations for a bot in discord,
+    this bot will post a callout to every member of the Guiild defined by MAIN_GUILD_ID,
+    if no message is seen for the amount of time defined in MAX_TIME_DELTA,
+    which is checked every amount of time defiend in BOT_LOOP_DURATION_IN_SECONDS.
+    Also it roll dice with the command '-roll' in the format NdN.
     """
 
     def __init__(self, bot: Bot):
@@ -120,7 +113,7 @@ class SchedulingCogs(Cog):
 
         #   Sending the callout message.
         if (self.last_message is None or (self.last_message is not None and datetime.utcnow() - self.last_message.created_at >= MAX_TIME_DELTA)):
-            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(GENERAL_CHANEL_ID).send("everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
+            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send("@everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
 
     #   Defines this will be called before the loop would start.
     @bots_internal_loop.before_loop
@@ -133,7 +126,10 @@ class SchedulingCogs(Cog):
 
         print("Finished waiting")
 
-# The setup fucntion below is neccesarry. Remember we give bot.add_cog() the name of the class in this case SimpleCog.
-# When we load the cog, we use the name of the file.
+
 def setup(bot):
-    bot.add_cog(SchedulingCogs(bot))
+    """
+    This function will add the Cog defined in this file to the bot that loads this file.
+    """
+
+    bot.add_cog(Scheduling(bot))

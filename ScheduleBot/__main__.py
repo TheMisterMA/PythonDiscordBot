@@ -20,7 +20,7 @@ description = """
 #   Creating the BotClient
 client = Bot(command_prefix="-", description=description)
 
-client.load_extension("scheduleBotClient")
+client.load_extension("schedule_cogs")
 
 #   Run the Bot Client with the Token of the specific bot created for this program.
 client.run(BOT_TOKEN)
