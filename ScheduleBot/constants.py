@@ -11,6 +11,7 @@ from datetime import timedelta
 """     Discord ID's        """
 MAIN_GUILD_ID = 589535414944137226
 GENERAL_CHANEL_ID = 620402498532016188
+BOT_TESTING_CHANNEL_ID = 789127687104102470
 
 """     Important Names     """
 MY_NAME = "WeLiveInASociety"
