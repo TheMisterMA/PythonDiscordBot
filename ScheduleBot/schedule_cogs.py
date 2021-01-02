@@ -10,6 +10,7 @@ This file is defines the Cogs which group sets of commends or algorithems of the
 from discord import ChannelType, TextChannel
 from discord.ext.tasks import loop
 from discord.ext.commands import Command, Bot, Cog, command
+from data_handler import BotDataHandler
 from constants import MY_NAME, MAIN_GUILD_ID, MAX_TIME_DELTA, BOT_LOOP_DURATION_IN_SECONDS, MAIN_CHANNEL_ID
 from datetime import datetime, timezone
 import random
@@ -27,6 +28,7 @@ class Scheduling(Cog):
     def __init__(self, bot: Bot):
         self.last_message = None
         self.bot = bot
+        self.data_handler = BotDataHandler()
 
     @Cog.listener()
     async def on_ready(self):
@@ -80,6 +82,43 @@ class Scheduling(Cog):
         result = ", ".join(str(random.randint(1, limit)) for r in range(rolls))
         await ctx.send(result)
 
+    @command(name="createMeeting")
+    async def create_meeting(self, ctx: TextChannel, *args):
+        """
+        With this command you could create a meeting with the format {name} {date} {HH:MM}
+        name    -   A name without any spaces of any kind.
+        date    -   Date in the format : DD/MM/YYYY,
+                    should be any valid day in the future and the present day included.
+        time    -   Approximate time format : hh:mm,
+                    if the day is the present day then the time should be in the after the current time.
+        """
+        if len(args) != 3:
+            await ctx.send(f"Usage : {('Too much' if len(args) > 3 else 'Not enough')} arguments")
+            return
+
+        name, date, time = args
+
+        try:
+            day, month, year = map(int, date.split("/"))
+        except ValueError:
+            await ctx.send("Error : Fromat has to be in DD/MM/YYYY")
+            return
+
+        try:
+            hour, minute = map(int, time.split(":"))
+        except ValueError:
+            await ctx.send("Error : Fromat has to be in hh:mm")
+            return
+
+        self.data_handler.update_meetings(meeting_name=name, time=datetime(
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=0,
+            microsecond=0))
+
     #   This defines a loop that will call this function every certain amount of time.
     @loop(seconds=BOT_LOOP_DURATION_IN_SECONDS)
     async def bots_internal_loop(self):
@@ -94,8 +133,8 @@ class Scheduling(Cog):
             #   If the current chennel is a TextChannel and it has a last message,
             #   then the variable channellast_message will not hold the last_message of that channel.
             channels_last_message = None
-            if channel.type == ChannelType.text and channel.last_message is not None:
-                channels_last_message = await channel.fetch_message(channel.last_message.id)
+            if channel.type == ChannelType.text and channel.last_message_id is not None:
+                channels_last_message = await channel.fetch_message(channel.last_message_id)
 
             #   If the above variable has a value, which is not None, the previous condtions value is true.
             #   Then, if there is no last message value in this bot or the creation time of the message is after the current last message stored,
@@ -112,8 +151,8 @@ class Scheduling(Cog):
             f"time now: {datetime.utcnow().isoformat(timespec = 'microseconds')}")
 
         #   Sending the callout message.
-        if (self.last_message is None or (self.last_message is not None and datetime.utcnow() - self.last_message.created_at >= MAX_TIME_DELTA)):
-            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send("@everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
+        if self.last_message is None or (self.last_message is not None and datetime.utcnow() - self.last_message.created_at >= MAX_TIME_DELTA):
+            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send("everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
 
     #   Defines this will be called before the loop would start.
     @bots_internal_loop.before_loop
