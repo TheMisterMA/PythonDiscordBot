@@ -22,7 +22,22 @@ class Scheduling(Cog):
     this bot will post a callout to every member of the Guiild defined by MAIN_GUILD_ID,
     if no message is seen for the amount of time defined in MAX_TIME_DELTA,
     which is checked every amount of time defiend in BOT_LOOP_DURATION_IN_SECONDS.
-    Also it roll dice with the command '-roll' in the format NdN.
+
+    Parameters
+    ----------
+    bot : Bot
+        The bot which the Cog will be a part of.
+
+    Attributes
+    ----------
+    last_message : Message
+        The last message been sent to the guild.
+
+    bot : Bot
+        The bot which the Cog will be a part of.
+
+    data_handler : BotDataHandler
+        The data handler for the data needed to be stored in the Cog for future use.
     """
 
     def __init__(self, bot: Bot):
@@ -53,6 +68,11 @@ class Scheduling(Cog):
         """
         Overloads the function that get called every time a message is sent in any of the channels the bot is part of.
         This will call the super's implementation of the function and will print the info about the message.
+
+        Parameters
+        ----------
+        message : Message
+            The message which the bot has detected being sent.
         """
 
         #   Info about the message.
@@ -65,7 +85,15 @@ class Scheduling(Cog):
     @command()
     async def roll(self, ctx: TextChannel, dice: str):
         """
-        Rolls a dice in NdN format.
+        Rolls a dice command, in NdN format.
+
+        Parameters
+        ----------
+        ctx : TextChannel
+            The text channel in which the command was sent from.
+
+        dice : str
+            The dice values, the amount of dices and its dimensions, in the format: NdN
         """
 
         try:
@@ -85,31 +113,43 @@ class Scheduling(Cog):
     @command(name="createMeeting")
     async def create_meeting(self, ctx: TextChannel, *args):
         """
-        With this command you could create a meeting with the format {name} {date} {HH:MM}
-        name    -   A name without any spaces of any kind.
-        date    -   Date in the format : DD/MM/YYYY,
-                    should be any valid day in the future and the present day included.
-        time    -   Approximate time format : hh:mm,
-                    if the day is the present day then the time should be in the after the current time.
+        With this command you could create a meeting with the format {name} {date} {time}
+
+        Parameters
+        ----------
+        name : str
+            The nameof the meeting,which has to be without any spaces of any kind.
+
+        date : str
+            Date in the format : DD/MM/YYYY,
+            should be any valid day in the future and the present day included.
+
+        time : str
+            Approximate time format : hh:mm,
+            if the day is the present day then the time should be in the after the current time.
         """
+
         if len(args) != 3:
             await ctx.send(f"Usage : {('Too much' if len(args) > 3 else 'Not enough')} arguments")
             return
 
         name, date, time = args
 
+        #   TODO: add limitations for the date, so it would not add a meeting in the past.
         try:
             day, month, year = map(int, date.split("/"))
         except ValueError:
             await ctx.send("Error : Fromat has to be in DD/MM/YYYY")
             return
 
+        #   TODO: Add limitions on the time too so it would not be in the past.
         try:
             hour, minute = map(int, time.split(":"))
         except ValueError:
             await ctx.send("Error : Fromat has to be in hh:mm")
             return
 
+        #   Adding the meeting to the data handler
         self.data_handler.update_meetings(meeting_name=name, time=datetime(
             year=year,
             month=month,
@@ -166,9 +206,14 @@ class Scheduling(Cog):
         print("Finished waiting")
 
 
-def setup(bot):
+def setup(bot: Bot):
     """
     This function will add the Cog defined in this file to the bot that loads this file.
+
+    Parameters
+    ----------
+    bot : Bot
+        The bot, which the cog in this file that would be added to.
     """
 
     bot.add_cog(Scheduling(bot))
