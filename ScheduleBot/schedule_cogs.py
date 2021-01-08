@@ -26,18 +26,18 @@ class Scheduling(Cog):
     Parameters
     ----------
     bot : Bot
-        The bot which the Cog will be a part of.
+                    The bot which the Cog will be a part of.
 
     Attributes
     ----------
     last_message : Message
-        The last message been sent to the guild.
+                    The last message been sent to the guild.
 
     bot : Bot
-        The bot which the Cog will be a part of.
+                    The bot which the Cog will be a part of.
 
     data_handler : BotDataHandler
-        The data handler for the data needed to be stored in the Cog for future use.
+                    The data handler for the data needed to be stored in the Cog for future use.
     """
 
     def __init__(self, bot: Bot):
@@ -72,7 +72,7 @@ class Scheduling(Cog):
         Parameters
         ----------
         message : Message
-            The message which the bot has detected being sent.
+                        The message which the bot has detected being sent.
         """
 
         #   Info about the message.
@@ -90,10 +90,10 @@ class Scheduling(Cog):
         Parameters
         ----------
         ctx : TextChannel
-            The text channel in which the command was sent from.
+                        The text channel in which the command was sent from.
 
         dice : str
-            The dice values, the amount of dices and its dimensions, in the format: NdN
+                        The dice values, the amount of dices and its dimensions, in the format: NdN
         """
 
         try:
@@ -118,15 +118,15 @@ class Scheduling(Cog):
         Parameters
         ----------
         name : str
-            The nameof the meeting,which has to be without any spaces of any kind.
+                        The nameof the meeting,which has to be without any spaces of any kind.
 
         date : str
-            Date in the format : DD/MM/YYYY,
-            should be any valid day in the future and the present day included.
+                        Date in the format : DD/MM/YYYY,
+                        should be any valid day in the future and the present day included.
 
         time : str
-            Approximate time format : hh:mm,
-            if the day is the present day then the time should be in the after the current time.
+                        Approximate time format : hh:mm,
+                        if the day is the present day then the time should be in the after the current time.
         """
 
         if len(args) != 3:
@@ -205,6 +205,16 @@ class Scheduling(Cog):
 
         print("Finished waiting")
 
+    def check_meetings(self):
+        for meeting_name in self.data_handler.get_meeting_names():
+            scheduled_time = self.data_handler.get_meetings_scheduled_time(
+                meeting_name)
+            if(scheduled_time != None):
+                #	TODO: Put the right condition to make sure it would be sent only once, one day before the meeting.
+                if(True):
+                    await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send(
+                        f"The meeting {meeting_name} schedualed for {scheduled_time.day}/{scheduled_time.month}/{scheduled_time.year} at {scheduled_time.hour}:{scheduled_time.minute} is tommorow")
+
 
 def setup(bot: Bot):
     """
@@ -213,7 +223,7 @@ def setup(bot: Bot):
     Parameters
     ----------
     bot : Bot
-        The bot, which the cog in this file that would be added to.
+            The bot, which the cog in this file that would be added to.
     """
 
     bot.add_cog(Scheduling(bot))

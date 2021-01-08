@@ -70,7 +70,12 @@ class BotDataHandler(object):
             "Hour":         time.hour,
             "Minute":       time.minute,
             "Second":       time.second,
-            "Microsecond":  time.microsecond
+            "Microsecond":  time.microsecond,
+            "Reminders": 	{
+                "WeekReminder": 	False,
+                "DayReminder": 		False,
+                "HalfHourRemider":	False
+            }
         }
 
         with open(self._file_path, "w") as json_file:
@@ -102,3 +107,52 @@ class BotDataHandler(object):
             self._data["Meetings"][meeting_name]["Minute"],
             self._data["Meetings"][meeting_name]["Second"],
             self._data["Meetings"][meeting_name]["Microsecond"])
+
+    def get_meeting_names(self) -> list:
+        """
+        Gets all the meeting names set.
+
+        Returns
+        -------
+        list
+            A list of meeting names.
+        """
+
+        return [meeting_name for meeting_name in self._data["Meetings"]]
+
+    def update_reminder(self, meeting_name: str, reminder: str) -> bool:
+        """
+        Updates the reminder fields, and returns if the field was actually updated.
+        The boolean used to checkout wether the reminder was already used.
+
+        Parameters
+        ----------
+        meeting_name : str
+            The specified meeting's name.
+
+        reminder : str
+            The specific reminder to be updated or checked.
+
+        Return
+        ------
+        bool
+            True if the specified reminder field was updated.
+            If the field wasn't updated, or the field is alredy done, it will return False.
+        """
+
+        #   Checks if the field\meeting\reminder exist, if not then it will return a false.
+        if self._data["Meetings"][meeting_name][reminder] == None:
+            return False
+
+        #   If the field is already have been updated, then it will return a False.
+        if self._data["Meetings"][meeting_name][reminder]:
+            return False
+
+        #   Else, it will update the reminder and dump the changes into the file.
+        self._data["Meetings"][meeting_name][reminder] = True
+
+        with open(self._file_path, "w") as json_file:
+            dump(self._data, json_file)
+
+        #   Returns True for updating the file.
+        return True
