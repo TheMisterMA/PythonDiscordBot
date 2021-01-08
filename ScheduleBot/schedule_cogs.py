@@ -1,42 +1,34 @@
 """
-File Name       :   scheduleBotClient.py
+File Name       :   schedule_cogs.py
 Project         :   ScheduleBot
 Author          :   MrMA
 Creation Date   :   17.12.20
 
-This file is defines the client which contains the logic and algorithems of the Discord's bot.
+This file is defines the Cogs which group sets of commends or algorithems of the Discord's bot.
 """
 
 from discord import ChannelType, TextChannel
 from discord.ext.tasks import loop
-from discord.ext.commands import Command, Bot
-from constants import MY_NAME, MAIN_GUILD_ID, MAX_TIME_DELTA, BOT_LOOP_DURATION_IN_SECONDS, GENERAL_CHANEL_ID
+from discord.ext.commands import Command, Bot, Cog, command
+from constants import MY_NAME, MAIN_GUILD_ID, MAX_TIME_DELTA, BOT_LOOP_DURATION_IN_SECONDS, MAIN_CHANNEL_ID
 from datetime import datetime, timezone
 import random
 
 
-class ScheduleBot(Bot):
+class Scheduling(Cog):
     """
-    ScheduleBot client in discord,
-    this bot will post a callout to every member of the Guiild defined by MAIN_GUILD_ID, if no message is seen for the amount of time defined in MAX_TIME_DELTA,
+    Command declerations for a bot in discord,
+    this bot will post a callout to every member of the Guiild defined by MAIN_GUILD_ID,
+    if no message is seen for the amount of time defined in MAX_TIME_DELTA,
     which is checked every amount of time defiend in BOT_LOOP_DURATION_IN_SECONDS.
     Also it roll dice with the command '-roll' in the format NdN.
     """
 
-    def __init__(self, **options):
-
-        self.description = """
-            This bot will callout every certain amount of time all the members encourging them to meet, if for that amount of time no messages been sent to the guild.
-            Right now it doesn't do much but should in the end make the act of scheduling meetings easier and much more maneged.
-        """
-
+    def __init__(self, bot: Bot):
         self.last_message = None
+        self.bot = bot
 
-        super().__init__(command_prefix="-", description=self.description, options=options)
-
-        #   Adding the functions of this class as commands for the bots.
-        self.add_command(Command(self.roll))
-
+    @Cog.listener()
     async def on_ready(self):
         """
         Overloads the functions that get called when the client is done preparing the data received from Discord,
@@ -46,14 +38,15 @@ class ScheduleBot(Bot):
 
         #   The info about the bot itself for admins's use.
         print(
-            f"-----------------------------------------------------------------\n"
-            f"--\tLogged in as:\t {self.user.name}\n"
-            f"--\tID number:\t {self.user.id}\n"
-            f"-----------------------------------------------------------------\n"
+            f"-----------------------------------------------------------------\n",
+            f"--\tLogged in as:\t {self.bot.user.name}\n",
+            f"--\tID number:\t {self.bot.user.id}\n",
+            f"-----------------------------------------------------------------\n",
         )
 
         self.bots_internal_loop.start()
 
+    @Cog.listener()
     async def on_message(self, message):
         """
         Overloads the function that get called every time a message is sent in any of the channels the bot is part of.
@@ -65,11 +58,9 @@ class ScheduleBot(Bot):
             f"Got message from : {message.author.name}, {message.author.id}, in the channel : <{message.channel.name}> in <{message.channel.guild.name}>\n"
             f"\tThe Message : {message.content}"
         )
-
-        await super().on_message(message)
-
         #   TODO:   Add and integrate the dataHandler.
 
+    @command()
     async def roll(self, ctx: TextChannel, dice: str):
         """
         Rolls a dice in NdN format.
@@ -98,7 +89,7 @@ class ScheduleBot(Bot):
         """
 
         #   Choosing the channek intended for testing.
-        for channel in self.get_guild(MAIN_GUILD_ID).channels:
+        for channel in self.bot.get_guild(MAIN_GUILD_ID).channels:
 
             #   If the current chennel is a TextChannel and it has a last message,
             #   then the variable channellast_message will not hold the last_message of that channel.
@@ -122,7 +113,7 @@ class ScheduleBot(Bot):
 
         #   Sending the callout message.
         if (self.last_message is None or (self.last_message is not None and datetime.utcnow() - self.last_message.created_at >= MAX_TIME_DELTA)):
-            await self.get_guild(MAIN_GUILD_ID).get_channel(GENERAL_CHANEL_ID).send("@everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
+            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send("@everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
 
     #   Defines this will be called before the loop would start.
     @bots_internal_loop.before_loop
@@ -130,7 +121,15 @@ class ScheduleBot(Bot):
         """
         This function makes sure every needed configuration of the discord.py API is set.
         """
-
         #   Waits for all of the communications of discord to be set.
-        await self.wait_until_ready()
+        await self.bot.wait_until_ready()
+
         print("Finished waiting")
+
+
+def setup(bot):
+    """
+    This function will add the Cog defined in this file to the bot that loads this file.
+    """
+
+    bot.add_cog(Scheduling(bot))

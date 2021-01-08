@@ -1,5 +1,5 @@
 """
-File Name       :   scheduleBotClient.py
+File Name       :   data_handler.py
 Project         :   ScheduleBot
 Author          :   MrMA
 Creation Date   :   17.12.20
