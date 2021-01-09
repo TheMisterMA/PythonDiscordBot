@@ -72,9 +72,9 @@ class BotDataHandler(object):
             "Second":       time.second,
             "Microsecond":  time.microsecond,
             "Reminders": 	{
-                "WeekReminder": 	False,
-                "DayReminder": 		False,
-                "HalfHourRemider":	False
+                "WeekReminder": False,
+                "DayReminder": 	False,
+                "HourRemider":	False
             }
         }
 
