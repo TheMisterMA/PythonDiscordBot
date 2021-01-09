@@ -74,7 +74,7 @@ class BotDataHandler(object):
             "Reminders": 	{
                 "WeekReminder": False,
                 "DayReminder": 	False,
-                "HourRemider":	False
+                "HourReminder":	False
             }
         }
 
@@ -141,15 +141,12 @@ class BotDataHandler(object):
         """
 
         #   Checks if the field\meeting\reminder exist, if not then it will return a false.
-        if self._data["Meetings"][meeting_name][reminder] == None:
-            return False
-
         #   If the field is already have been updated, then it will return a False.
-        if self._data["Meetings"][meeting_name][reminder]:
+        if self._data["Meetings"][meeting_name]["Reminders"].get(reminder) is None or self._data["Meetings"][meeting_name]["Reminders"].get(reminder):
             return False
 
         #   Else, it will update the reminder and dump the changes into the file.
-        self._data["Meetings"][meeting_name][reminder] = True
+        self._data["Meetings"][meeting_name]["Reminders"][reminder] = True
 
         with open(self._file_path, "w") as json_file:
             dump(self._data, json_file)
