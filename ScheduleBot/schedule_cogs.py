@@ -159,6 +159,18 @@ class Scheduling(Cog):
             second=0,
             microsecond=0))
 
+    @command(name="deleteMeeting")
+    async def del_meeting(self, ctx: TextChannel, meeting_name: str):
+        """
+        Deletes a meeting that was set up, if it exist.
+
+        Parameters
+        ----------
+        meeting_name : str
+            The name of the meeting to be deleted.
+        """
+        self.data_handler.delete_meeting(meeting_name=meeting_name)
+
     #   This defines a loop that will call this function every certain amount of time.
     @loop(seconds=BOT_LOOP_DURATION_IN_SECONDS)
     async def bots_internal_loop(self):
@@ -270,9 +282,11 @@ class Scheduling(Cog):
                         #   Sending the reminder to the channel.
                         await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send(
                             f"everyone The meeting {meeting_name} schedualed for {scheduled_time.day}/{scheduled_time.month}/{scheduled_time.year} at {scheduled_time.hour}:{scheduled_time.minute} is the next week")
+
+                #   If the time now is greater then the meeting's time it will delete it automatically.
                 elif(time_now > self.data_handler.get_meetings_scheduled_time(meeting_name)):
-                    #   TODO:   Delete a meeting that was already done
-                    pass
+                    self.data_handler.delete_meeting(meeting_name)
+
 
 def setup(bot: Bot):
     """

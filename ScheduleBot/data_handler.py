@@ -153,3 +153,18 @@ class BotDataHandler(object):
 
         #   Returns True for updating the file.
         return True
+
+    def delete_meeting(self, meeting_name: str):
+        """
+        Deletes the meeting specified, and updates the file.
+
+        Parameters
+        ----------
+        meeting_name : str
+            The specified meeting's name.
+        """
+        if self._data["Meetings"].get(meeting_name) is not None:
+            del self._data["Meetings"][meeting_name]
+
+            with open(self._file_path, "w") as json_file:
+                dump(self._data, json_file)
