@@ -169,7 +169,17 @@ class Scheduling(Cog):
         meeting_name : str
             The name of the meeting to be deleted.
         """
+
         self.data_handler.delete_meeting(meeting_name=meeting_name)
+
+    @command(name="meetings")
+    async def meeting_list(self, ctx: TextChannel):
+        """
+        Sends to the command's channel the list of the meetings.
+        """
+
+        for meeting_name in self.data_handler.get_meeting_names():
+            await ctx.send(f"{meeting_name} in {self.data_handler.get_meetings_scheduled_time(meeting_name=meeting_name)}\n")
 
     #   This defines a loop that will call this function every certain amount of time.
     @loop(seconds=BOT_LOOP_DURATION_IN_SECONDS)
@@ -204,7 +214,7 @@ class Scheduling(Cog):
 
         #   Sending the callout message.
         if self.last_message is None or (self.last_message is not None and datetime.utcnow() - self.last_message.created_at >= MAX_TIME_DELTA):
-            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send("everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
+            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send("@everyone When will be the next time we meet you cunts, you didn't talk for 24 hours...")
 
         await self.check_meetings()
 
@@ -236,55 +246,37 @@ class Scheduling(Cog):
 
                 #   The time now, and the times to be checked with, for easier use.
                 time_now = datetime.now()
-                hour_before_time = self.data_handler.get_meetings_scheduled_time(
-                    meeting_name) - timedelta(hours=1)
-                day_before_time = self.data_handler.get_meetings_scheduled_time(
-                    meeting_name) - timedelta(days=1)
-                week_before_time = self.data_handler.get_meetings_scheduled_time(
-                    meeting_name) - timedelta(days=7)
 
-                #   If it is an hour before the meeting, and it was not reminded yet, then it will send the message.
-                if(
-                        hour_before_time.year == time_now.year and
-                        hour_before_time.month == time_now.month and
-                        hour_before_time.day == time_now.day and
-                        hour_before_time.hour == time_now.hour and
-                        hour_before_time.minute == time_now.minute):
+                #   The time differences before the meeting, to remind of the meeting.
+                time_diffrences = [
+                    timedelta(hours=1),
+                    timedelta(days=1),
+                    timedelta(days=7)
+                ]
 
-                    if(self.data_handler.update_reminder(meeting_name=meeting_name, reminder="HourReminder")):
+                for time_diff in time_diffrences:
+                    time_before_the_meeting = self.data_handler.get_meetings_scheduled_time(
+                        meeting_name) - time_diff
 
-                        #   Sending the reminder to the channel.
-                        await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send(
-                            f"everyone The meeting {meeting_name} schedualed for {scheduled_time.day}/{scheduled_time.month}/{scheduled_time.year} at {scheduled_time.hour}:{scheduled_time.minute} is in one hour")
-                #   If it is a day before the meeting, and it was not reminded yet, then it will send the message.
-                elif(
-                        day_before_time.year == time_now.year and
-                        day_before_time.month == time_now.month and
-                        day_before_time.day == time_now.day and
-                        day_before_time.hour == time_now.hour and
-                        day_before_time.minute == time_now.minute):
+                    #   If it is an hour before the meeting, and it was not reminded yet, then it will send the message.
+                    if(
+                            time_before_the_meeting.year == time_now.year and
+                            time_before_the_meeting.month == time_now.month and
+                            time_before_the_meeting.day == time_now.day and
+                            time_before_the_meeting.hour == time_now.hour and
+                            time_before_the_meeting.minute == time_now.minute):
 
-                    if(self.data_handler.update_reminder(meeting_name=meeting_name, reminder="DayReminder")):
+                        if(self.data_handler.update_reminder(meeting_name=meeting_name, reminder=f"{'HourReminder' if time_diff == timedelta(hours=1) else 'DayReminder' if time_diff == timedelta(days=1) else 'WeekReminder'}")):
 
-                        #   Sending the reminder to the channel.
-                        await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send(
-                            f"everyone The meeting {meeting_name} schedualed for {scheduled_time.day}/{scheduled_time.month}/{scheduled_time.year} at {scheduled_time.hour}:{scheduled_time.minute} is tommorow")
-                #   If it is a week before the meeting, and it was not reminded yet, then it will send the message.
-                elif(
-                        week_before_time.year == time_now.year and
-                        week_before_time.month == time_now.month and
-                        week_before_time.day == time_now.day and
-                        week_before_time.hour == time_now.hour and
-                        week_before_time.minute == time_now.minute):
-
-                    if(self.data_handler.update_reminder(meeting_name=meeting_name, reminder="WeekReminder")):
-
-                        #   Sending the reminder to the channel.
-                        await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send(
-                            f"everyone The meeting {meeting_name} schedualed for {scheduled_time.day}/{scheduled_time.month}/{scheduled_time.year} at {scheduled_time.hour}:{scheduled_time.minute} is the next week")
+                            #   Sending the reminder to the channel.
+                            await self.bot.get_guild(MAIN_GUILD_ID).get_channel(MAIN_CHANNEL_ID).send(
+                                f"@everyone The meeting {meeting_name} schedualed for " +
+                                f"{scheduled_time.day}/{scheduled_time.month}/{scheduled_time.year} at {scheduled_time.hour}:{scheduled_time.minute} " +
+                                f"is in {'one hour' if time_diff == timedelta(hours=1) else 'tommorow' if time_diff == timedelta(days=1) else 'the next week'}"
+                            )
 
                 #   If the time now is greater then the meeting's time it will delete it automatically.
-                elif(time_now > self.data_handler.get_meetings_scheduled_time(meeting_name)):
+                if(time_now > self.data_handler.get_meetings_scheduled_time(meeting_name)):
                     self.data_handler.delete_meeting(meeting_name)
 
 
