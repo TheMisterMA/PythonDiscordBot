@@ -7,13 +7,20 @@ Creation Date   :   17.12.20
 This file is defines the Cogs which group sets of commends or algorithems of the Discord's bot.
 """
 
+#   Importing Discords types and functionallity
 from discord import ChannelType, TextChannel
 from discord.ext.tasks import loop
 from discord.ext.commands import Command, Bot, Cog, command
+
+#   Importing random for the dice rolling command.
+from random import randint
+
+#   Importing Datetime properties for date and time calculations.
+from datetime import datetime, timezone, timedelta
+
+#   Importing the Data Handler for the bots data handling, and constants for the cog functionallity.
 from data_handler import BotDataHandler
 from constants import MY_NAME, MAIN_GUILD_ID, MAX_TIME_DELTA, BOT_LOOP_DURATION_IN_SECONDS, MAIN_CHANNEL_ID
-from datetime import datetime, timezone, timedelta
-import random
 
 
 class Scheduling(Cog):
@@ -107,7 +114,7 @@ class Scheduling(Cog):
             return
 
         #   Joins all the random rolls
-        result = ", ".join(str(random.randint(1, limit)) for r in range(rolls))
+        result = ", ".join(str(randint(1, limit)) for r in range(rolls))
         await ctx.send(result)
 
     @command(name="createMeeting")
@@ -258,7 +265,7 @@ class Scheduling(Cog):
                     time_before_the_meeting = self.data_handler.get_meetings_scheduled_time(
                         meeting_name) - time_diff
 
-                    #   If it is an hour before the meeting, and it was not reminded yet, then it will send the message.
+                    #   If it is a defined amount of time before the meeting, and it was not reminded yet for that time, then it will send the message.
                     if(
                             time_before_the_meeting.year == time_now.year and
                             time_before_the_meeting.month == time_now.month and

@@ -11,9 +11,6 @@ This file is a script, which executes the bot client in discord.
 
 from discord.ext.commands import Bot
 from constants import BOT_TOKEN
-from data_handler import BotDataHandler
-
-handler = BotDataHandler()
 
 description = """
     This bot will callout every certain amount of time all the members encourging them to meet, if for that amount of time no messages been sent to the guild.
